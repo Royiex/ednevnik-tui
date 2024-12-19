@@ -10,35 +10,41 @@ session = requests.Session()
 parser.add_argument("-f", "--file", type=argparse.FileType('r'), required=False, help="File with Username Line 1, and Password Line 2.")
 parser.add_argument("-j", "--json", default=False, action=argparse.BooleanOptionalAction, required=False, help="Output JSON files of data")
 
-args = parser.parse_args()
 
-response = session.get("https://ocjene.skole.hr/login")
-soup = BeautifulSoup(response.text, "html.parser")
+login = session.get("https://ocjene.skole.hr/login")
+soup = BeautifulSoup(login.text, "html.parser")
 csrf_token = soup.find("input", {"name": "csrf_token"})["value"]
-user = ""
-passw = ""
+def Start():
+    user = ""
+    passw = ""
+    args = parser.parse_args()
 
-if args.file:
-    with args.file as file:
-        user = file.readline().strip()
-        passw = file.readline().strip()
+    if args.file:
+        with args.file as file:
+            user = file.readline().strip()
+            passw = file.readline().strip()
 
-if not user or not passw:
-    user = input("Enter Username: ")
-    passw = input("Enter Password: ")
+    if not user or not passw:
+        user = input("Enter Username: ")
+        passw = input("Enter Password: ")
 
-login_data = {
-    "username": user,
-    "password": passw,
-    "csrf_token": csrf_token,
-}
-headers = {
-    "Referer": "https://ocjene.skole.hr/login",
-    "Origin": "https://ocjene.skole.hr",
-}
+    login_data = {
+        "username": user,
+        "password": passw,
+        "csrf_token": csrf_token,
+    }
+    headers = {
+        "Referer": "https://ocjene.skole.hr/login",
+        "Origin": "https://ocjene.skole.hr",
+    }
+    login_response = session.post("https://ocjene.skole.hr/login", data=login_data, headers=headers)
+    if login_response.url == "https://ocjene.skole.hr/login":
+        raise ValueError("Wrong Username or Passowrd!")
 
+    convert()
 
 def convert():
+    course = session.get("https://ocjene.skole.hr/course")
     soup = BeautifulSoup(course.text, "lxml")
     classes = []
     for li in soup.select("ul.list > li"):
@@ -77,16 +83,8 @@ def convert():
     school_json = json.dumps(school_data, indent=4, ensure_ascii=False)
     classes_json = json.dumps(classes_data, indent=4, ensure_ascii=False)
 
-    if args.json == True:
+    if parser.parse_args().json == True:
         pathlib.Path("main.json").write_text(school_json)
         pathlib.Path("classes.json").write_text(classes_json)
 
     return(school_json)
-
-login_response = session.post("https://ocjene.skole.hr/login", data=login_data, headers=headers)
-if login_response.url == "https://ocjene.skole.hr/login":
-    raise ValueError("Wrong Username or Passowrd!")
-
-course = session.get("https://ocjene.skole.hr/course")
-
-convert()
