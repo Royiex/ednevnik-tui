@@ -1,67 +1,22 @@
-from textual.app import App, ComposeResult, RenderResult
-from textual.containers import Container, Grid, Horizontal
-from textual.screen import Screen
-from textual.widgets import Placeholder
+from textual.app import App, ComposeResult
+from textual.widgets import Footer, TabPane, TabbedContent
+from data import get_classes, sanitize_name
+import re
 
-class Header(Placeholder):
-    DEFAULT_CSS = """
-    Header {
-        height: 3;
-        dock: top;
-    }
-    """
-    def render(self) -> RenderResult:
-        return "Hello, [b]World[/b]!"
+# Get data from external module
+classes_original = get_classes()
+classes_sanitized = [sanitize_name(name) for name in classes_original]
 
-class Footer(Placeholder):
-    DEFAULT_CSS = """
-    Footer {
-        height: 3;
-        dock: bottom;
-    }
-    """
 
-class Maininfo(Placeholder):
-    DEFAULT_CSS = """
-    Maininfo {
-        width: 1fr;
-        height: 1fr;
-    }
-    """
-
-class Row(Horizontal):
-    DEFAULT_CSS = """
-    Row {
-        height: 1fr;
-    }
-    """
+class ednevnikTui(App):
 
     def compose(self) -> ComposeResult:
-        yield Maininfo(id="main1")
-        yield Maininfo(id="main2")
-
-class MainScreen(Screen):
-    def compose(self) -> ComposeResult:
-        yield Header(id="Header")
-        yield Footer(id="Footer")
-        with Grid():
-            yield Row()
-            yield Row()
-
-
-class Layout(App):
-    def on_mount(self) -> None:
-        self.push_screen(MainScreen())
-
-    # def on_ready(self) -> None:
-    #     self.update_clock()
-    #     self.set_interval(1, self.update_clock)
-
-    # def update_clock(self) -> None:
-    #     clock = datetime.now().time()
-    #     self.query_one(Digits).update(f"{clock:%T}")
-
+        yield Footer()
+        with TabbedContent():
+            for original, sanitized in zip(classes_original, classes_sanitized):
+                yield TabPane(original, id=sanitized)
 
 
 if __name__ == "__main__":
-    Layout().run()
+    app = ednevnikTui()
+    app.run()
