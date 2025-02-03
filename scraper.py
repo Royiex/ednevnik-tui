@@ -41,7 +41,7 @@ def Start():
     if login_response.url == "https://ocjene.skole.hr/login":
         raise ValueError("Wrong Username or Passowrd!")
 
-    convert()
+    return convert()
 
 def convert():
     course = session.get("https://ocjene.skole.hr/course")

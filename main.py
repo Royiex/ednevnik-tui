@@ -1,3 +1,8 @@
+# from tui import ednevnikTui
 from scraper import Start
+# import subprocess
+# import argparse
 
-Start()
+
+a = Start()
+print(a)
